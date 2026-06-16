@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CombatStartPayload",
+  "description": "Data contract: Gemini DM -> Combat Simulator. Source of truth: backend/schemas/combat_start.py",
+  "type": "object",
+  "required": ["combat_id", "scene", "combatants", "narrative_context"],
+  "properties": {
+    "combat_id": { "type": "string" },
+    "scene": {
+      "type": "object",
+      "required": ["description", "terrain", "grid"],
+      "properties": {
+        "description": { "type": "string", "maxLength": 1000 },
+        "terrain": { "type": "string", "enum": ["dungeon_corridor","open_field","forest","cave","urban_street","tavern","castle_hall"] },
+        "grid": {
+          "type": "object",
+          "required": ["width", "height"],
+          "properties": {
+            "width":     { "type": "integer", "minimum": 4, "maximum": 32 },
+            "height":    { "type": "integer", "minimum": 4, "maximum": 24 },
+            "tile_size": { "type": "integer", "minimum": 32, "maximum": 128, "default": 64 }
+          }
+        }
+      }
+    },
+    "combatants": {
+      "type": "array", "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type", "position", "stats"],
+        "properties": {
+          "id":   { "type": "string" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "type": { "type": "string", "enum": ["player","enemy","ally","neutral"] },
+          "position": {
+            "type": "object", "required": ["x","y"],
+            "properties": {
+              "x": { "type": "integer", "minimum": 0 },
+              "y": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "stats": {
+            "type": "object", "required": ["hp","ac"],
+            "properties": {
+              "hp": {
+                "type": "object", "required": ["current","max"],
+                "properties": {
+                  "current": { "type": "integer", "minimum": 0 },
+                  "max":     { "type": "integer", "minimum": 1, "maximum": 1000 }
+                }
+              },
+              "ac":    { "type": "integer", "minimum": 1, "maximum": 30 },
+              "speed": { "type": "integer", "minimum": 0, "maximum": 120, "default": 30 }
+            }
+          },
+          "abilities": {
+            "type": "array",
+            "items": {
+              "type": "object", "required": ["id","name","action_cost"],
+              "properties": {
+                "id":           { "type": "string" },
+                "name":         { "type": "string" },
+                "action_cost":  { "type": "string", "enum": ["action","bonus_action","reaction","free","legendary"] },
+                "range_ft":     { "type": "integer", "minimum": 0, "maximum": 600, "default": 5 },
+                "damage_dice":  { "type": ["string","null"], "pattern": "^\\d+d\\d+(\\+\\d+)?$" },
+                "damage_type":  { "type": ["string","null"] },
+                "attack_bonus": { "type": ["integer","null"], "minimum": -5, "maximum": 20 },
+                "spell_level":  { "type": ["integer","null"], "minimum": 0, "maximum": 9 },
+                "save_dc":      { "type": ["integer","null"], "minimum": 1, "maximum": 30 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "narrative_context": {
+      "type": "object", "required": ["preceding_summary"],
+      "properties": {
+        "preceding_summary": { "type": "string", "maxLength": 2000 },
+        "dm_notes":          { "type": ["string","null"], "maxLength": 1000 }
+      }
+    },
+    "initiative_order": { "type": "array", "items": { "type": "string" }, "default": [] }
+  }
+}
