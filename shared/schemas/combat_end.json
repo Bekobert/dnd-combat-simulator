@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CombatEndPayload",
+  "description": "Data contract: Combat Simulator -> Gemini DM. Source of truth: backend/schemas/combat_end.py",
+  "type": "object",
+  "required": ["combat_id", "duration_rounds", "outcome"],
+  "properties": {
+    "combat_id":       { "type": "string" },
+    "duration_rounds": { "type": "integer", "minimum": 1 },
+    "outcome": { "type": "string", "enum": ["victory","defeat","retreat","enemy_fled","draw"] },
+    "survivors": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["id","name","final_hp","max_hp"],
+        "properties": {
+          "id":                   { "type": "string" },
+          "name":                 { "type": "string" },
+          "final_hp":             { "type": "integer", "minimum": 0 },
+          "max_hp":               { "type": "integer", "minimum": 1 },
+          "conditions_remaining": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "defeated": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["id","name","death_type"],
+        "properties": {
+          "id":           { "type": "string" },
+          "name":         { "type": "string" },
+          "death_type":   { "type": "string", "enum": ["killed","downed","fled"] },
+          "killed_by":    { "type": ["string","null"] },
+          "killing_blow": { "type": ["string","null"] }
+        }
+      }
+    },
+    "event_log": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["round","turn","action_id","narrative_tag"],
+        "properties": {
+          "round":      { "type": "integer", "minimum": 1 },
+          "turn":       { "type": "string" },
+          "action_id":  { "type": "string" },
+          "target_id":  { "type": ["string","null"] },
+          "damage_dealt":      { "type": ["integer","null"], "minimum": 0 },
+          "healing_done":      { "type": ["integer","null"], "minimum": 0 },
+          "condition_applied": { "type": ["string","null"] },
+          "narrative_tag": {
+            "type": "string",
+            "enum": ["solid_hit","glancing_blow","killing_blow","near_death","turning_point","critical_hit","critical_miss","spell_cast","condition_applied","legendary_action"]
+          },
+          "detail": { "type": ["string","null"], "maxLength": 200 }
+        }
+      }
+    },
+    "loot_acquired": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["item"],
+        "properties": {
+          "item":     { "type": "string" },
+          "quantity": { "type": "integer", "minimum": 1, "default": 1 }
+        }
+      }
+    },
+    "dm_prompt_injection": { "type": ["string","null"], "maxLength": 2000 }
+  }
+}
